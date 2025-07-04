@@ -47,6 +47,7 @@ import {
   Briefcase,
   Dumbbell,
   Menu,
+  X,
 } from "lucide-react"
 
 const defaultCategories = [
@@ -189,13 +190,13 @@ const predefinedSteps = {
   ],
 }
 
-export default function Component() {
+export default function HouseholdManualCreator({ onBackToHome }) {
   const [currentScreen, setCurrentScreen] = useState("selection") // "selection", "creation", "manage-categories"
   const [selectedCategory, setSelectedCategory] = useState("")
   const [selectedTask, setSelectedTask] = useState("")
   const [title, setTitle] = useState("")
-  // 既存の steps, inputMethod を削除し、以下に置き換え
   const [stepsList, setStepsList] = useState([{ id: 1, stepNumber: 1, content: "", inputMethod: "text", photos: [] }])
+
   // Custom categories state
   const [customCategories, setCustomCategories] = useState([])
   const [customTasks, setCustomTasks] = useState({})
@@ -210,8 +211,7 @@ export default function Component() {
   const [newTaskName, setNewTaskName] = useState("")
   const [taskCategoryId, setTaskCategoryId] = useState("")
 
-  // useState の部分に以下を追加
-  // 写真関連の状態を更新
+  // 写真関連の状態
   const [dragActive, setDragActive] = useState(false)
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
   const [shareMessage, setShareMessage] = useState("")
@@ -221,20 +221,14 @@ export default function Component() {
   const [isListening, setIsListening] = useState(false)
   const [listeningStepId, setListeningStepId] = useState(null)
 
-  // ハンバーガーメニューとユーザー情報の状態を追加
+  // ハンバーガーメニューの状態
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [userInfo, setUserInfo] = useState({
-    userId: "USER001",
-    userName: "田中太郎",
-    email: "tanaka@example.com",
-  })
 
   // Combine default and custom categories
   const allCategories = [...defaultCategories, ...customCategories]
   const allHouseworkTasks = { ...defaultHouseworkTasks, ...customTasks }
 
-  // 手順関連の関数を追加（handlePhotoUpload関数の前に追加）
-
+  // 手順関連の関数
   const addNewStep = () => {
     const newStepNumber = stepsList.length + 1
     const newStep = {
@@ -267,14 +261,13 @@ export default function Component() {
     setStepsList(stepsList.map((step) => (step.id === stepId ? { ...step, inputMethod } : step)))
   }
 
-  // 音声認識関数を追加
+  // 音声認識関数
   const handleVoiceInput = (stepId) => {
     if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
       alert("お使いのブラウザは音声認識に対応していません。Chrome、Edge、Safariをお試しください。")
       return
     }
 
-    // 既に音声認識が実行中の場合は停止
     if (isListening) {
       return
     }
@@ -290,7 +283,6 @@ export default function Component() {
     setIsListening(true)
     setListeningStepId(stepId)
 
-    // タイムアウト制御
     let timeoutId = null
     let isManualStop = false
 
@@ -313,7 +305,6 @@ export default function Component() {
       cleanup()
     }
 
-    // 15秒でタイムアウト（短めに設定）
     timeoutId = setTimeout(() => {
       stopRecognition()
       alert("音声認識がタイムアウトしました。もう一度お試しください。")
@@ -335,7 +326,6 @@ export default function Component() {
       cleanup()
       console.error("音声認識エラー:", event.error)
 
-      // エラーの種類に応じてメッセージを変更
       let errorMessage = "音声認識でエラーが発生しました。"
 
       switch (event.error) {
@@ -343,7 +333,7 @@ export default function Component() {
           if (!isManualStop) {
             errorMessage = "音声認識が中断されました。もう一度お試しください。"
           } else {
-            return // 手動停止の場合はアラートを表示しない
+            return
           }
           break
         case "audio-capture":
@@ -380,21 +370,18 @@ export default function Component() {
     }
   }
 
-  // 写真関連の関数を追加（handleTemplateSelect関数の前に追加）
-
+  // 写真関連の関数
   const handleCameraCapture = async (stepId) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // 背面カメラを優先
+        video: { facingMode: "environment" },
       })
 
-      // カメラストリームを表示するための要素を作成
       const video = document.createElement("video")
       video.srcObject = stream
       video.autoplay = true
       video.playsInline = true
 
-      // モーダルを作成してカメラプレビューを表示
       const modal = document.createElement("div")
       modal.style.cssText = `
         position: fixed;
@@ -453,7 +440,6 @@ export default function Component() {
       modal.appendChild(buttonContainer)
       document.body.appendChild(modal)
 
-      // 撮影ボタンのクリックイベント
       captureButton.onclick = () => {
         const canvas = document.createElement("canvas")
         canvas.width = video.videoWidth
@@ -466,7 +452,6 @@ export default function Component() {
             const file = new File([blob], `camera-${Date.now()}.jpg`, { type: "image/jpeg" })
             handlePhotoUpload([file], stepId)
 
-            // クリーンアップ
             stream.getTracks().forEach((track) => track.stop())
             document.body.removeChild(modal)
           },
@@ -475,7 +460,6 @@ export default function Component() {
         )
       }
 
-      // キャンセルボタンのクリックイベント
       cancelButton.onclick = () => {
         stream.getTracks().forEach((track) => track.stop())
         document.body.removeChild(modal)
@@ -496,14 +480,12 @@ export default function Component() {
       let mediaRecorder
       let recordedChunks = []
 
-      // カメラストリームを表示するための要素を作成
       const video = document.createElement("video")
       video.srcObject = stream
       video.autoplay = true
       video.playsInline = true
-      video.muted = true // プレビュー時はミュート
+      video.muted = true
 
-      // モーダルを作成してカメラプレビューを表示
       const modal = document.createElement("div")
       modal.style.cssText = `
         position: fixed;
@@ -589,7 +571,6 @@ export default function Component() {
       let recordingTimer
       let recordingTime = 0
 
-      // 録画開始ボタンのクリックイベント
       recordButton.onclick = () => {
         recordedChunks = []
         mediaRecorder = new MediaRecorder(stream)
@@ -604,7 +585,6 @@ export default function Component() {
           const blob = new Blob(recordedChunks, { type: "video/webm" })
           const file = new File([blob], `video-${Date.now()}.webm`, { type: "video/webm" })
 
-          // 動画ファイルの処理をここに追加（現在は写真と同じ配列に追加）
           const newVideo = {
             id: Date.now(),
             file,
@@ -618,7 +598,6 @@ export default function Component() {
             stepsList.map((step) => (step.id === stepId ? { ...step, photos: [...step.photos, newVideo] } : step)),
           )
 
-          // クリーンアップ
           stream.getTracks().forEach((track) => track.stop())
           document.body.removeChild(modal)
           clearInterval(recordingTimer)
@@ -630,7 +609,6 @@ export default function Component() {
         timerDisplay.style.display = "block"
         cancelButton.textContent = "破棄"
 
-        // タイマー開始
         recordingTime = 0
         recordingTimer = setInterval(() => {
           recordingTime++
@@ -638,25 +616,22 @@ export default function Component() {
           const seconds = recordingTime % 60
           timerDisplay.textContent = `録画中 ${minutes}:${seconds.toString().padStart(2, "0")}`
 
-          // 5分で自動停止
           if (recordingTime >= 300) {
             stopButton.click()
           }
         }, 1000)
       }
 
-      // 録画停止ボタンのクリックイベント
       stopButton.onclick = () => {
         if (mediaRecorder && mediaRecorder.state === "recording") {
           mediaRecorder.stop()
         }
       }
 
-      // キャンセルボタンのクリックイベント
       cancelButton.onclick = () => {
         if (mediaRecorder && mediaRecorder.state === "recording") {
           mediaRecorder.stop()
-          recordedChunks = [] // 録画データを破棄
+          recordedChunks = []
         }
         stream.getTracks().forEach((track) => track.stop())
         document.body.removeChild(modal)
@@ -740,7 +715,6 @@ export default function Component() {
     if (selectedCategory && selectedTask) {
       setTitle(selectedTask)
 
-      // 「お米の炊き方」の場合は事前定義された手順を設定
       if (selectedTask === "お米の炊き方" && predefinedSteps[selectedTask]) {
         const preSteps = predefinedSteps[selectedTask].map((step, index) => ({
           id: Date.now() + index,
@@ -809,7 +783,6 @@ export default function Component() {
     const updatedCategories = customCategories.filter((category) => category.id !== categoryId)
     setCustomCategories(updatedCategories)
 
-    // Also, remove tasks associated with the deleted category
     const updatedTasks = { ...customTasks }
     delete updatedTasks[categoryId]
     setCustomTasks(updatedTasks)
@@ -830,7 +803,6 @@ export default function Component() {
   }
 
   const handleShareRequest = () => {
-    // ここで実際の送信処理を行う
     console.log("共有リクエスト:", {
       title,
       message: shareMessage,
@@ -838,86 +810,68 @@ export default function Component() {
       manual: stepsList,
     })
 
-    // リセット
     setShareMessage("")
     setSelectedStamp("")
     setIsShareDialogOpen(false)
 
-    // 成功メッセージなどを表示する処理をここに追加
     alert("家族にマニュアルを共有しました！")
   }
 
-  const handleUserInfoSubmit = () => {
-    console.log("ユーザー情報送信:", userInfo)
-    alert("ユーザー情報を送信しました！")
-  }
+  // ハンバーガーメニューコンポーネント
+  const HamburgerMenu = () => {
+    if (!isMenuOpen) return null
 
-  const handleUserInfoChange = (field, value) => {
-    setUserInfo((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
-
-  if (currentScreen === "home") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(true)}>
-                <Menu className="w-4 h-4" />
+      <div className="fixed inset-0 z-50">
+        {/* オーバーレイ */}
+        <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMenuOpen(false)} />
+
+        {/* メニューパネル */}
+        <div className="fixed left-0 top-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out">
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold text-gray-800">メニュー</h2>
+              <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(false)} className="p-1">
+                <X className="w-4 h-4" />
               </Button>
-              <h1 className="text-xl font-semibold text-gray-800">ホーム</h1>
+            </div>
+
+            <div className="space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  onBackToHome()
+                  setIsMenuOpen(false)
+                }}
+              >
+                <Home className="w-4 h-4 mr-2" />
+                ホーム
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  setCurrentScreen("selection")
+                  setIsMenuOpen(false)
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                マニュアル作成
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  setCurrentScreen("manage-categories")
+                  setIsMenuOpen(false)
+                }}
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                カテゴリ管理
+              </Button>
             </div>
           </div>
-        </div>
-
-        <div className="max-w-2xl mx-auto p-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">ユーザー情報</CardTitle>
-              <CardDescription>アカウント情報を確認・編集できます</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="user-id">ユーザーID</Label>
-                <Input
-                  id="user-id"
-                  value={userInfo.userId}
-                  onChange={(e) => handleUserInfoChange("userId", e.target.value)}
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="user-name">ユーザー名</Label>
-                <Input
-                  id="user-name"
-                  value={userInfo.userName}
-                  onChange={(e) => handleUserInfoChange("userName", e.target.value)}
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email">メールアドレス</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={userInfo.email}
-                  onChange={(e) => handleUserInfoChange("email", e.target.value)}
-                  className="mt-2"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 右下の送信ボタン */}
-        <div className="fixed bottom-6 right-6">
-          <Button onClick={handleUserInfoSubmit} className="bg-orange-500 hover:bg-orange-600 shadow-lg" size="lg">
-            送信
-          </Button>
         </div>
       </div>
     )
@@ -926,6 +880,8 @@ export default function Component() {
   if (currentScreen === "manage-categories") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50">
+        <HamburgerMenu />
+
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -1180,6 +1136,8 @@ export default function Component() {
   if (currentScreen === "selection") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50">
+        <HamburgerMenu />
+
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -1205,7 +1163,6 @@ export default function Component() {
 
         <div className="max-w-4xl mx-auto p-4">
           <div className="max-w-2xl mx-auto space-y-6">
-            {/* Left Column - Category and Task Selection */}
             <div className="space-y-6">
               {/* Category and Task Selection */}
               <Card>
@@ -1226,7 +1183,7 @@ export default function Component() {
                             key={category.id}
                             onClick={() => {
                               setSelectedCategory(category.id)
-                              setSelectedTask("") // Reset task when category changes
+                              setSelectedTask("")
                             }}
                             className={`p-4 rounded-lg border-2 transition-all text-left ${
                               isSelected
@@ -1260,7 +1217,7 @@ export default function Component() {
                     </div>
                   </div>
 
-                  {/* Task Selection - Shows when category is selected */}
+                  {/* Task Selection */}
                   {selectedCategory && (
                     <div className="border-t pt-4">
                       <h3 className="font-medium text-sm text-gray-700 mb-3">
@@ -1324,6 +1281,8 @@ export default function Component() {
   // Creation Screen
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-pink-50">
+      <HamburgerMenu />
+
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -1716,6 +1675,7 @@ export default function Component() {
           </Button>
         </div>
       </div>
+
       {/* Share Dialog */}
       <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
         <DialogContent className="max-w-md">
@@ -1813,49 +1773,6 @@ export default function Component() {
                 送信
               </Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-      {/* Hamburger Menu */}
-      <Dialog open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>メニュー</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => {
-                setCurrentScreen("home")
-                setIsMenuOpen(false)
-              }}
-            >
-              <Home className="w-4 h-4 mr-2" />
-              ホーム
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => {
-                setCurrentScreen("selection")
-                setIsMenuOpen(false)
-              }}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              マニュアル作成
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              onClick={() => {
-                setCurrentScreen("manage-categories")
-                setIsMenuOpen(false)
-              }}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              カテゴリ管理
-            </Button>
           </div>
         </DialogContent>
       </Dialog>

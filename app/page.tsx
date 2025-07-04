@@ -1,4 +1,4 @@
-import Component from "../household-manual-creator"
+import Component from "./top"
 
 export default function Page() {
   return <Component />
