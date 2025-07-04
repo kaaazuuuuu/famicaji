@@ -1150,14 +1150,19 @@ export default function HouseholdManualCreator({ onBackToHome }) {
                 <p className="text-sm text-gray-600 mt-1">作成したい家事を選んでください</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setCurrentScreen("manage-categories")}
-              className="flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              カテゴリ管理
-            </Button>
+            {/* User Info */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
+                  <img
+                    src="/placeholder.svg?height=32&width=32"
+                    alt="ユーザーアイコン"
+                    className="w-6 h-6 rounded-full"
+                  />
+                </div>
+                <span className="text-sm font-medium text-gray-700">ママ</span>
+              </div>
+            </div>
           </div>
         </div>
 

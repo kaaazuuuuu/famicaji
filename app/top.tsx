@@ -80,15 +80,13 @@ export default function TopPage() {
                 className="mt-2"
               />
             </div>
+            <div className="pt-4">
+              <Button onClick={handleUserInfoSubmit} className="w-full bg-orange-500 hover:bg-orange-600">
+                送信
+              </Button>
+            </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* 右下の送信ボタン */}
-      <div className="fixed bottom-6 right-6">
-        <Button onClick={handleUserInfoSubmit} className="bg-orange-500 hover:bg-orange-600 shadow-lg" size="lg">
-          送信
-        </Button>
       </div>
     </div>
   )
